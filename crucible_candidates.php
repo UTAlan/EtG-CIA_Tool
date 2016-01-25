@@ -19,8 +19,9 @@ require_once("header.php");
 					done = true;
 				}
 			});
-			if(!done && confirm('Are you sure you want to promote these cards? This cannot be undone.')) 
+			if(!done && confirm('Are you sure you want to promote these cards? This cannot be undone.')) {
 				$("#promote_form").submit();
+			}
 		}
 		</script>
 
@@ -34,19 +35,19 @@ require_once("header.php");
 			<?php 
 			foreach($cards_candidates as $id_member=>$cards) {
 				echo '<li class="opa">';
-				$user_query = "SELECT member_name FROM smf_members WHERE id_member = " . $id_member;
-				$user_result = mysql_query($user_query);
-				$user = mysql_fetch_assoc($user_result);
+				$user_result = $db->query("SELECT member_name FROM smf_members WHERE id_member = $id_member");
+				$user = $user_result->fetch_assoc();
 				echo '<a class="normal" href="' . $cards["member"] . '">' . $user['member_name'] . '</a><br /><br />';
 				echo '<table><tr>';
 				foreach($cards["cards"] as $id=>$card) {
 					echo "<td><a class='normal' href='" . $card["href"] . "'><img width='150px' src='" . $card["img"] . "' /></a><br /><br />";
 					echo "<select name='card_" . $id_member . "_" . $id . "' class='category'>";
-					echo "<option value=''></option>";
-					echo "<option value='M' selected='selected'>Material (Ea/Ai/Wa/Fi)</option>";
+					echo "<option value='' selected='selected'>SELECT CATEGORY</option>";
+					echo "<option value='M'>Material (Ea/Ai/Wa/Fi)</option>";
 					echo "<option value='C'>Cardinal (En/Gr/Ae/Ti)</option>";
 					echo "<option value='S'>Spiritual (Lf/De/Lt/Da)</option>";
 					echo "<option value='O'>Other &amp; Non-Elemental</option>";
+					echo "<option value='X'>DON'T PROMOTE</option>";
 					echo "</select></td> ";
 				}
 				echo '</tr></table>';

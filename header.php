@@ -21,6 +21,10 @@
 			img.center {display: block; margin-left: auto; margin-right: auto;}
 			img.left {float:left; margin-right:10px;}
 			td { padding-left: 5px; padding-right: 5px; }
+			table.text { border: none; margin: 0 auto; }
+			table.text td { border: solid 1px #aaa; }
+			table.text td.highlight { color: #ff0; }
+			table td select { width: 150px; }
 			pre {padding:15px; width: 600px; margin:0 auto; background: #FFF;}
 		</style>
 	</head>
