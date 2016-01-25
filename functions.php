@@ -1,110 +1,107 @@
 <?php 
-function getCrucibleCandidates($post = array()) {
+function getCandidates($crucible = true, $id_topic = '', $post = array()) {
 	global $db;
-	$candidates_results = $db->query("SELECT * FROM smf_messages WHERE id_topic = '16154' ORDER BY poster_time ASC");
-	$cards_candidates = array();
-	$skip = 0;
-	while($row = $candidates_results->fetch_assoc()) {
-		if($skip < 2) {
-			$skip++;
-		} else {
-			$id_member = $row['id_member'];
-			$cards_candidates[$id_member] = array();
-			$cards_candidates[$id_member]["member"] = "../../forum/index.php?msg=".$row['id_msg'];
-			$cards_candidates[$id_member]["id_msg"] = $row["id_msg"];
-			$cards_candidates[$id_member]["cards"] = array();
-			$cards_arr = explode('[url=', $row['body']);
-			$index = 0;
-			foreach($cards_arr as $text) {
-				if(($end_pos = strpos($text, '[/img]')) !== false) {
-					$url_pos = strpos($text, '[img');
-					$img_pos = strpos($text, ']http');
-					if($index <= 3) { // Only get first 4 cards per person
-						$c = array();
-						$text_end = strpos($text, "[/url]");
-						$c["full"] = "[url=" . substr($text, 0, $text_end + 6);
-						$c["href"] = substr($text, 0, $url_pos-1); // Link to card
-						$c["img"] = substr($text, $img_pos+1, $end_pos-$img_pos-1); // Link to image
-						if(!empty($post) && !empty($post["card_" . $id_member . "_" . $index])) {
-							$c["category"] = $post["card_" . $id_member . "_" . $index]; // Category (on promote page)
-						}
 
-						// Get card info from thread
-						$dom = getHtml($c["href"]);
-						$c["topic_id"] = getTopicId($dom);
-						$c["name"] = getUnuppedCardName($dom);
-						
-						$cards_candidates[$id_member]["cards"][$index++] = $c;
+	if($crucible) {
+		$candidates_results = $db->query("SELECT * FROM smf_messages WHERE id_topic = '16154' ORDER BY poster_time ASC");
+		$candidates = array();
+		$skip = 0;
+		while($row = $candidates_results->fetch_assoc()) {
+			if($skip < 2) {
+				$skip++;
+			} else {
+				$id_member = $row['id_member'];
+				$candidates[$id_member] = array();
+				$candidates[$id_member]["member"] = "../../forum/index.php?msg=".$row['id_msg'];
+				$candidates[$id_member]["id_msg"] = $row["id_msg"];
+				$candidates[$id_member]["cards"] = array();
+				$cards_arr = explode('[url=', $row['body']);
+				$index = 0;
+				foreach($cards_arr as $text) {
+					if(($end_pos = strpos($text, '[/img]')) !== false) {
+						$url_pos = strpos($text, '[img');
+						$img_pos = strpos($text, ']http');
+						if($index <= 3) { // Only get first 4 cards per person
+							$c = array();
+							$text_end = strpos($text, "[/url]");
+							$c["full"] = "[url=" . substr($text, 0, $text_end + 6);
+							$c["href"] = substr($text, 0, $url_pos-1); // Link to card
+							$c["img"] = substr($text, $img_pos+1, $end_pos-$img_pos-1); // Link to image
+							if(!empty($post) && !empty($post["card_" . $id_member . "_" . $index])) {
+								$c["category"] = $post["card_" . $id_member . "_" . $index]; // Category (on promote page)
+							}
+
+							// Get card info from thread
+							$dom = getHtml($c["href"]);
+							$c["topic_id"] = getTopicId($dom);
+							$c["name"] = getUnuppedCardName($dom);
+							
+							$candidates[$id_member]["cards"][$index++] = $c;
+						}
 					}
+				}
+			}
+		}
+	} else if(!empty($id_topic)) {
+		$candidates = array("promote_num"=>-1, "cards"=>array());
+		$promote_num_arr = array('33'=>'6', '26'=>'5', '18'=>'4', '13'=>'3', '7'=>'2', '3'=>'1', '0'=>'0'); 
+
+		// Get results of poll
+		$poll_choices_result = $db->query("SELECT pc.* FROM smf_poll_choices pc LEFT JOIN smf_polls p ON p.id_poll = pc.id_poll WHERE p.id_topic = '$id_topic' ORDER BY votes DESC");
+		$poll_choices_num = $poll_choices_result->num_rows;
+		foreach($promote_num_arr as $k=>$v) {
+			if($poll_choices_num >= $k) {
+				$candidates["promote_num"] = $v;
+				break;
+			}
+		}
+
+		// Save # of votes for each card
+		while($row = $poll_choices_result->fetch_assoc()) {
+			$candidates["cards"][ucwords($row["label"])] = array("votes"=>$row["votes"]);
+		}
+
+		// Get content of first post
+		$poll_thread_results = $db->query("SELECT * FROM smf_messages WHERE id_topic = '$id_topic' ORDER BY poster_time ASC");
+		$poll_thread_arr = $poll_thread_results->fetch_assoc();
+		$body_arr = explode("Click on a card image to go to discussion page.", $poll_thread_arr["body"]);
+		$body = $body_arr[count($body_arr)-1];
+		$body = str_replace("<br />", "", $body);
+		$body = str_replace("[hr]", "", $body);
+		$cards_arr = explode("[url=", $body);
+
+		// Loop through each card candidate
+		foreach($cards_arr as $text) {
+			// Get HTML of linked page
+			if(($end_pos = strpos($text, '[/img]')) !== false) {
+				$url_pos = strpos($text, '[img');
+				$img_pos = strpos($text, ']http');
+				
+				$c = array();
+				$text_end = strpos($text, "[/url]");
+				$c["full"] = "[url=" . substr($text, 0, $text_end + 6);
+				$c["href"] = substr($text, 0, $url_pos-1); // Link to card
+				$c["img"] = substr($text, $img_pos+1, $end_pos-$img_pos-1); // Link to image
+
+				// Get card info from thread
+				$dom = getHtml($c["href"]);
+				$c["topic_id"] = getTopicId($dom);
+				$c["name"] = getUnuppedCardName($dom);
+
+				$card_name = strtolower(preg_replace("/[^a-zA-Z0-9]+/", "", $c["name"]));
+				if(!empty($post) && !empty($post["category_" . $card_name])) {
+					$c["category"] = $post["category_" . $card_name]; // Category (on promote page)
+				}
+				
+				if(!empty($c["name"])) {
+					$c["votes"] = $candidates["cards"][$c["name"]]["votes"];
+					$candidates["cards"][$c["name"]] = $c;
 				}
 			}
 		}
 	}
 
-	return $cards_candidates;
-}
-
-function getForgeCandidates($id_topic, $post = array()) {
-	global $db;
-	$forge_candidates = array("promote_num"=>-1, "cards"=>array());
-	$promote_num_arr = array('33'=>'6', '26'=>'5', '18'=>'4', '13'=>'3', '7'=>'2', '3'=>'1', '0'=>'0'); 
-
-	// Get results of poll
-	$poll_choices_result = $db->query("SELECT pc.* FROM smf_poll_choices pc LEFT JOIN smf_polls p ON p.id_poll = pc.id_poll WHERE p.id_topic = '$id_topic' ORDER BY votes DESC");
-	$poll_choices_num = $poll_choices_result->num_rows;
-	foreach($promote_num_arr as $k=>$v) {
-		if($poll_choices_num >= $k) {
-			$forge_candidates["promote_num"] = $v;
-			break;
-		}
-	}
-
-	// Save # of votes for each card
-	while($row = $poll_choices_result->fetch_assoc()) {
-		$forge_candidates["cards"][ucwords($row["label"])] = array("votes"=>$row["votes"]);
-	}
-
-	// Get content of first post
-	$poll_thread_results = $db->query("SELECT * FROM smf_messages WHERE id_topic = '$id_topic' ORDER BY poster_time ASC");
-	$poll_thread_arr = $poll_thread_results->fetch_assoc();
-	$body_arr = explode("Click on a card image to go to discussion page.", $poll_thread_arr["body"]);
-	$body = $body_arr[count($body_arr)-1];
-	$body = str_replace("<br />", "", $body);
-	$body = str_replace("[hr]", "", $body);
-	$cards_arr = explode("[url=", $body);
-
-	// Loop through each card candidate
-	foreach($cards_arr as $text) {
-		// Get HTML of linked page
-		if(($end_pos = strpos($text, '[/img]')) !== false) {
-			$url_pos = strpos($text, '[img');
-			$img_pos = strpos($text, ']http');
-			
-			$c = array();
-			$text_end = strpos($text, "[/url]");
-			$c["full"] = "[url=" . substr($text, 0, $text_end + 6);
-			$c["href"] = substr($text, 0, $url_pos-1); // Link to card
-			$c["img"] = substr($text, $img_pos+1, $end_pos-$img_pos-1); // Link to image
-
-			// Get card info from thread
-			$dom = getHtml($c["href"]);
-			$c["topic_id"] = getTopicId($dom);
-			$c["name"] = getUnuppedCardName($dom);
-
-			$card_name = strtolower(preg_replace("/[^a-zA-Z0-9]+/", "", $c["name"]));
-			if(!empty($post) && !empty($post["category_" . $card_name])) {
-				$c["category"] = $post["category_" . $card_name]; // Category (on promote page)
-			}
-			
-			if(!empty($c["name"])) {
-				$c["votes"] = $forge_candidates["cards"][$c["name"]]["votes"];
-				$forge_candidates["cards"][$c["name"]] = $c;
-			}
-		}
-	}
-
-	// Return array
-	return $forge_candidates;
+	return $candidates;
 }
 
 function getHtml($url) {
@@ -163,7 +160,7 @@ function getUnuppedCardName($dom) {
 
 function checkAccess($access_groups = array()) {
 	global $db;
-	$admins = array(1, 2, 76);
+	$admins = array(1, 2, 100, 107);
 
 	if (isset($_COOKIE['SMFCookie811'])) {
 		$arr = stripslashes(urldecode($_COOKIE['SMFCookie811']));

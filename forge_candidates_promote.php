@@ -21,7 +21,7 @@ $topic_ids_arr = $remove_html = $poll_choice_ids = array();
 $add_html = array("crea"=>"", "perm"=>"", "spell"=>"");
 
 // Get candidates
-$forge_candidates = getForgeCandidates($_GET['id_topic'], $_POST);
+$forge_candidates = getCandidates(false, $_GET['id_topic'], $_POST);
 
 // Get next id for each poll choice
 $crea_choice_result = $db->query("SELECT MAX(id_choice) as id_choice FROM smf_poll_choices WHERE id_poll = " . $poll_ids["crea"]);
@@ -55,8 +55,8 @@ foreach($forge_candidates["cards"] as $card) {
 	$poll_choice_ids[$card["category"]]++;
 	$add_html[$card["category"]] .= $card["full"] . " ";
 
-	$db->query("INSERT INTO smf_poll_choices SET id_poll = " . $id_poll . ", id_choice = " . $id_choice . ", label = '" . mysql_real_escape_string($card["name"]) . "', votes = 0");
-	$db->query("DELETEU FROM smf_poll_choices WHERE id_poll = " . $poll_ids_old[$_GET['id_topic']] . " AND label = '" . mysql_real_escape_string($card["name"]) . "'");
+	$db->query("INSERT INTO smf_poll_choices SET id_poll = " . $id_poll . ", id_choice = " . $id_choice . ", label = '" . mysql_real_escape_string($card["name"]) . " *', votes = 0");
+	$db->query("DELETE FROM smf_poll_choices WHERE id_poll = " . $poll_ids_old[$_GET['id_topic']] . " AND label = '" . mysql_real_escape_string($card["name"]) . "'");
 
 	$remove_html[] = $card["full"];
 }
@@ -77,6 +77,7 @@ $topics_ids = implode(',', $topic_ids_arr);
 $db->query("UPDATE smf_topics SET id_board = 130 WHERE id_topic IN ($topics_ids)");
 
 // Add to first post of Forge thread
+$promoted_html = '';
 foreach($add_html as $category=>$html) {
 	if(!empty($html)) {
 		$topics = array("crea" => 6846, "perm" => 6847, "spell" => 6848);
@@ -87,7 +88,7 @@ foreach($add_html as $category=>$html) {
 	}
 }
 if(!empty($promoted_html)) {
-	$promoted_html = "The following card(s) will be moved to the [url=http://elementscommunity.org/forum/level-3-anvil/][b]Armory[/b][/url]!\n\n" . $promoted_html . "\n\nCongratulations!\n\nThe following card(s) received the least amount of votes and so will be placed in the [url=http://elementscommunity.org/forum/forge-archive/][b]Archive[/b][/url] for posteriority.\n[spoiler=Archived Cards][/spoiler]";
+	$promoted_html = "The following card(s) will be moved to the [url=http://elementscommunity.org/forum/level-2-forge/][b]Forge[/b][/url]!\n\n" . $promoted_html . "\n\nCongratulations!\n\nThe following card(s) received the least amount of votes and so will be placed in the [url=http://elementscommunity.org/forum/crucible-archive/][b]Archive[/b][/url] for posteriority.\n[spoiler=Archived Cards][/spoiler]";
 }
 
 require_once("header.php");

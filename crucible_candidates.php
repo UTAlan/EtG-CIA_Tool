@@ -2,7 +2,7 @@
 require_once("config.php");
 
 // Get Candidates Messages
-$cards_candidates = getCrucibleCandidates();
+$cards_candidates = getCandidates();
 
 // Make sure next page isn't refreshed
 unset($_SESSION['crucible_candidates_promote_done']);

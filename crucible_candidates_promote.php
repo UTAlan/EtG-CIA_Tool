@@ -14,7 +14,7 @@ define("CAR_POLL_ID", 1640);
 define("SPI_POLL_ID", 1643);
 define("OTH_POLL_ID", 1642);
 
-$crucible_candidates = getCrucibleCandidates($_POST);
+$crucible_candidates = getCrucibleCandidates(true, '', $_POST);
 $topic_ids_arr = array(); //$category = array();
 $add_html = array("M"=>"<br />[hr]<br /><br />", "C"=>"<br />[hr]<br /><br />", "S"=>"<br />[hr]<br /><br />", "O"=>"<br />[hr]<br /><br />");
 
@@ -78,7 +78,7 @@ foreach($crucible_candidates as $id_member=>$cards) {
 			default:
 		}
 		if($id_poll) {
-			$db->query("INSERT INTO smf_poll_choices SET id_poll = " . $id_poll . ", id_choice = " . $id_choice . ", label = '" . mysql_real_escape_string($card["name"]) . "', votes = 0");
+			$db->query("INSERT INTO smf_poll_choices SET id_poll = " . $id_poll . ", id_choice = " . $id_choice . ", label = '" . mysql_real_escape_string($card["name"]) . " *', votes = 0");
 			$remove_html[] = $card["full"];
 		}
 	}

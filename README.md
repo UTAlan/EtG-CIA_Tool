@@ -20,7 +20,7 @@
 * Generate code for CC to make "Promoted" post in appropriate threads.
 
 ## Phase 3 - Promote Forge 
-**_In Progress_**
+**_Completed_**
 
 * Move card threads into Armory
 * Add card images to first post of appropriate thread

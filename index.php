@@ -56,7 +56,6 @@ require_once("header.php");
 				}
 				?>
 			</li>
-			<!--
 			<li class="opa">
 				<h2>Forge</h2>
 				<br />
@@ -73,12 +72,13 @@ require_once("header.php");
 						$interval = $now->diff($expire_time);
 						echo 'Expires in ' . $interval->format('%a days, %h hours, %i minutes, %s seconds.');
 					} else {
-						echo '<input type="button" value="Promote/Archive Forge Cards" onclick="soon();" />';
+						echo '<input type="button" value="Promote/Archive Forge Cards" onclick="promote(\'armory\', ' . $poll["id_topic"] . ');" />';
 					}
 					echo '</span><br /><br />';
 				}
 				?>
 			</li>
+			<!--
 			<li class="opa">
 				<h2>False Gods</h2>
 				<br />

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <html>
 	<head>
-		<title>Elements CI&amp;A Tools</title>
+		<title>EtG Card Curator Tool</title>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 		<style type="text/css">
 			body {background-image:url('../../images/background.jpg'); background-color:#444; font-family:Verdana,Helvetica,sans-serif;}

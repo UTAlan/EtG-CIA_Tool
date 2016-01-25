@@ -7,7 +7,7 @@ if(empty($_GET['id_topic'])) {
 }
 
 // Get Candidates Messages
-$forge_candidates = getForgeCandidates($_GET['id_topic']);
+$forge_candidates = getCandidates(false, $_GET['id_topic']);
 $num_forge_candidates = count($forge_candidates["cards"]);
 
 // Make sure next page isn't refreshed
